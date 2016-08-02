@@ -166,7 +166,12 @@ public class FileIO {
         }
     }
 
-    public static void relocateFile(String _inDir, String _fileName, String _category) {
+    public static void relocateFile(String _filePath, String _category) {
+
+        int separatePos = _filePath.lastIndexOf('/');
+        String _inDir = _filePath.substring(0, separatePos);
+        String _fileName = _filePath.substring(separatePos + 1);
+
         File inDir = new File(_inDir);
         if(!inDir.exists())
             inDir.mkdirs();

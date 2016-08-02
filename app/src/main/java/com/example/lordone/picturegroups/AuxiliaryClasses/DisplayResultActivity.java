@@ -1,5 +1,7 @@
 package com.example.lordone.picturegroups.AuxiliaryClasses;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -11,8 +13,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.lordone.picturegroups.BaseClasses.FileIO;
 import com.example.lordone.picturegroups.BaseClasses.GV;
 import com.example.lordone.picturegroups.BaseClasses.ImageExecutive;
+import com.example.lordone.picturegroups.Functions.CameraTestActivity;
 import com.example.lordone.picturegroups.MainActivity;
 import com.example.lordone.picturegroups.R;
 
@@ -25,7 +29,8 @@ public class DisplayResultActivity extends AppCompatActivity {
 
     public static int ACCURACY_RESULT = 0,
                       PICTURE_RESULT = 1,
-                      CAMERA_RESULT = 2;
+                      CAMERA_RESULT = 2,
+                      GROUPS = 3;
 
     Button mainmenu_button;
     Button continue_test_button;
@@ -115,7 +120,93 @@ public class DisplayResultActivity extends AppCompatActivity {
         }
 
         if(result_type == CAMERA_RESULT) {
-            setContentView(R.layout.camera_test_layout);
+            try {
+                setContentView(R.layout.camera_test_layout);
+
+                LinearLayout linearLayout = (LinearLayout) findViewById(R.id.camera_test_Linear_layout);
+
+                Button backButton = (Button) findViewById(R.id.back_button);
+                backButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        onBackPressed();
+                    }
+                });
+
+                Button shootAgainButton = (Button) findViewById(R.id.shoot_again_button);
+                shootAgainButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(DisplayResultActivity.this, CameraTestActivity.class);
+                        startActivity(intent);
+                    }
+                });
+
+
+
+                Bitmap photo = ImageExecutive.getBitmap(GV._testListDirs.get(0));
+                ImageView imageView = new ImageView(this);
+                imageView.setImageBitmap(photo);
+                imageView.setMaxHeight(888);
+                imageView.setAdjustViewBounds(true);
+
+                TextView resultTextView = new TextView(this);
+                resultTextView.setText("predict: " + GV.ivMapCat.getString(String.valueOf(GV._predictedCats.get(0))));
+                resultTextView.setGravity(Gravity.CENTER);
+                resultTextView.setTextSize(20);
+
+                linearLayout.addView(imageView);
+                linearLayout.addView(resultTextView);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(result_type == GROUPS) {
+            try {
+                for (int i = 0; i < GV._predictedCats.size(); i++) {
+                    FileIO.relocateFile(GV._testListDirs.get(i), GV.ivMapCat.getString(String.valueOf(GV._predictedCats.get(i))));
+                }
+
+                int [] n_predicted = new int[GV._uniqueCatNames.length];
+                String result = "";
+                for(int i = 0; i < GV._predictedCats.size(); i++) {
+                    n_predicted[GV._predictedCats.get(i)] ++;
+                }
+
+                for(int i = 0; i < GV._uniqueCatNames.length; i++)
+                    if(n_predicted[i] > 0) {
+                        result += n_predicted[i] + " picture(s) copied to folder " + GV.ivMapCat.getString(String.valueOf(i)) + '\n';
+                    }
+
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Grouping result");
+                builder.setMessage(result);
+                builder.setPositiveButton("To Folder", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //TODO
+                    }
+                });
+                builder.setNegativeButton("Back", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        AlertDialog alertDialog = builder.create();
+                        alertDialog.show();
+                    }
+                });
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
     }

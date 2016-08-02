@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -18,6 +19,7 @@ import com.daimajia.androidanimations.library.YoYo;
 import com.example.lordone.picturegroups.AuxiliaryClasses.FileBrowserActivity;
 import com.example.lordone.picturegroups.BaseClasses.FileIO;
 import com.example.lordone.picturegroups.BaseClasses.GV;
+import com.example.lordone.picturegroups.Functions.CameraTestActivity;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -32,6 +34,13 @@ public class MainActivity extends AppCompatActivity {
     ImageButton mGroupButton;
     ImageButton mTestAccuracyButton;
 
+    Button mTrainSquare;
+    Button mTrain100Square;
+    Button mStaticTestSquare;
+    Button mCameraTestSquare;
+    Button mGroupSquare;
+    Button mTestAccuracySquare;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
         GV.init();
 
         mTrainButton = (ImageButton) findViewById(R.id.trainButton);
-        mTrainButton.setOnClickListener(new View.OnClickListener() {
+        mTrainSquare = (Button) findViewById(R.id.train_square);
+        mTrainSquare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 YoYo.with(Techniques.Swing).duration(500).playOn(mTrainButton);
@@ -54,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mTrain100RandomButton = (ImageButton) findViewById(R.id.train100RandomButton);
-        mTrain100RandomButton.setOnClickListener(new View.OnClickListener() {
+        mTrain100Square = (Button) findViewById(R.id.train_100_square);
+        mTrain100Square.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 YoYo.with(Techniques.Swing).duration(500).playOn(mTrain100RandomButton);
@@ -67,7 +78,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         mStaticTestButton = (ImageButton) findViewById(R.id.staticTestButton);
-        mStaticTestButton.setOnClickListener(new View.OnClickListener() {
+        mStaticTestSquare = (Button) findViewById(R.id.static_test_square);
+        mStaticTestSquare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(GV.svm != null) {
@@ -81,53 +93,56 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-//
-//        mCameraTestButton = (ImageButton) findViewById(R.id.cameraTestButton);
-//        mCameraTestButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(GV.svm != null) {
-//                    YoYo.with(Techniques.Swing).duration(500).playOn(mCameraTestButton);
-//                    Intent intent = new Intent(MainActivity.this, CameraTestActivity.class);
-//                    startActivity(intent);
-//                }
-//                else {
-//                    Toast.makeText(MainActivity.this, "You must train first!", Toast.LENGTH_LONG).show();
-//                }
-//            }
-//        });
-//
-//        mTestAccuracyButton = (ImageButton) findViewById(R.id.testAccuracyButton);
-//        mTestAccuracyButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(GV.svm != null) {
-//                    YoYo.with(Techniques.Swing).duration(500).playOn(mTestAccuracyButton);
-//                    Intent intent = new Intent(MainActivity.this, FileBrowserActivity.class);
-//                    intent.putExtra("function", FileBrowserActivity.test_accuracy_func);
-//                    startActivity(intent);
-//                }
-//                else {
-//                    Toast.makeText(MainActivity.this, "You must train first!", Toast.LENGTH_LONG).show();
-//                }
-//            }
-//        });
-//
-//        mGroupButton = (ImageButton) findViewById(R.id.groupButton);
-//        mGroupButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(GV.svm != null) {
-//                    YoYo.with(Techniques.Swing).duration(500).playOn(mGroupButton);
-//                    Intent intent = new Intent(MainActivity.this, FileBrowserActivity.class);
-//                    intent.putExtra("function", FileBrowserActivity.group_picture_func);
-//                    startActivity(intent);
-//                }
-//                else {
-//                    Toast.makeText(MainActivity.this, "You must train first!", Toast.LENGTH_LONG).show();
-//                }
-//            }
-//        });
+
+        mCameraTestButton = (ImageButton) findViewById(R.id.cameraTestButton);
+        mCameraTestSquare = (Button) findViewById(R.id.camera_test_square);
+        mCameraTestSquare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(GV.svm != null) {
+                    YoYo.with(Techniques.Swing).duration(500).playOn(mCameraTestButton);
+                    Intent intent = new Intent(MainActivity.this, CameraTestActivity.class);
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(MainActivity.this, "You must train first!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        mTestAccuracyButton = (ImageButton) findViewById(R.id.testAccuracyButton);
+        mTestAccuracySquare = (Button) findViewById(R.id.test_accuracy_square);
+        mTestAccuracySquare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(GV.svm != null) {
+                    YoYo.with(Techniques.Swing).duration(500).playOn(mTestAccuracyButton);
+                    Intent intent = new Intent(MainActivity.this, FileBrowserActivity.class);
+                    intent.putExtra("function", FileBrowserActivity.test_accuracy_func);
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(MainActivity.this, "You must train first!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        mGroupButton = (ImageButton) findViewById(R.id.groupButton);
+        mGroupSquare = (Button) findViewById(R.id.group_pictures_square);
+        mGroupSquare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(GV.svm != null) {
+                    YoYo.with(Techniques.Swing).duration(500).playOn(mGroupButton);
+                    Intent intent = new Intent(MainActivity.this, FileBrowserActivity.class);
+                    intent.putExtra("function", FileBrowserActivity.group_picture_func);
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(MainActivity.this, "You must train first!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
 
 //        new InitLoadSVMThread(this).start();
 //        new InitLoadSVM().execute(this);

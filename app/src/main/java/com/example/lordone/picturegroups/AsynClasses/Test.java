@@ -98,15 +98,7 @@ public class Test extends AsyncTask<Void, Integer, Integer> {
 
         Date endTime = new Date();
         long featuring_time = (endTime.getTime() - beginTime.getTime()) / 1000;
-//        builder.setTitle("Notification");
-//        builder.setMessage("Categorize " + result + " images in " + featuring_time + " seconds");
-//        activity.runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                alert = builder.create();
-//                alert.show();
-//            }
-//        });
+
         AlertDia.showAlert(activity, "Categorize " + result + " images in " + featuring_time + " seconds");
 
         Intent intent = new Intent(activity, DisplayResultActivity.class);

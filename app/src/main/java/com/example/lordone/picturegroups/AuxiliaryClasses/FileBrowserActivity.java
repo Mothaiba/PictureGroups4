@@ -11,7 +11,9 @@ import android.widget.Toast;
 
 import com.example.lordone.picturegroups.BaseClasses.FileArrayAdapter;
 import com.example.lordone.picturegroups.BaseClasses.Item;
+import com.example.lordone.picturegroups.Functions.GroupPicturesActivity;
 import com.example.lordone.picturegroups.Functions.StaticTestActivity;
+import com.example.lordone.picturegroups.Functions.TestAccuracyActivity;
 import com.example.lordone.picturegroups.Functions.Train100RandomActivity;
 import com.example.lordone.picturegroups.Functions.TrainActivity;
 import com.example.lordone.picturegroups.R;
@@ -53,8 +55,8 @@ public class FileBrowserActivity extends ListActivity {
         mapActivity.put(train_func, TrainActivity.class);
         mapActivity.put(train_100_func, Train100RandomActivity.class);
         mapActivity.put(static_test_func, StaticTestActivity.class);
-//        mapActivity.put(test_accuracy_func, TestAccuracyActivity.class);
-//        mapActivity.put(group_picture_func, GroupPicturesActivity.class);
+        mapActivity.put(test_accuracy_func, TestAccuracyActivity.class);
+        mapActivity.put(group_picture_func, GroupPicturesActivity.class);
     }
 
     @Override
@@ -69,7 +71,7 @@ public class FileBrowserActivity extends ListActivity {
         title.setText((String) mapName.get(function_this));
 
         // Use the current directory as title
-        _path = "/Removable/MicroSD";
+        _path = "/";
         if (getIntent().hasExtra("path")) {
             _path = getIntent().getStringExtra("path");
         }

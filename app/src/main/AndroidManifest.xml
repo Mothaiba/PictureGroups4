@@ -50,6 +50,24 @@
         </activity>
 
         <activity
+            android:name=".Functions.CameraTestActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity
+            android:name=".Functions.TestAccuracyActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity
+            android:name=".Functions.GroupPicturesActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity
             android:name=".AuxiliaryClasses.FileBrowserActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
