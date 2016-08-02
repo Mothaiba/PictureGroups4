@@ -46,7 +46,8 @@
                     android:layout_height="wrap_content"
                     android:text="Continue Test"
                     android:id="@+id/continue_test_button"
-                    android:layout_weight="1" />
+                    android:layout_weight="1"
+                    android:visibility="gone" />
 
             </TableRow>
 

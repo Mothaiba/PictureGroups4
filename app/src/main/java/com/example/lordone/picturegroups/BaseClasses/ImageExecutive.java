@@ -28,13 +28,16 @@ import java.util.Vector;
  */
 public class ImageExecutive {
 
-    public static void resizeImage(String mCurrentPhotoPath) {
+    public static String resizeImage(String mCurrentPhotoPath) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, options);
 
         int oldWidth = bitmap.getWidth();
         int oldHeight = bitmap.getHeight();
+
+        if(oldHeight * oldWidth >= GV.minArea && oldHeight * oldWidth <= GV.maxArea)
+            return mCurrentPhotoPath;
 
         double ratio = Math.sqrt((double) GV.normalArea / (oldHeight * oldWidth));
 
@@ -58,7 +61,9 @@ public class ImageExecutive {
         }
         catch(Exception e){
             e.printStackTrace();
+            return mCurrentPhotoPath;
         }
+        return GV._tmpImageDir + GV._tmpImageFile;
     }
 
     public static void rotateImage(String _imageDir) {
@@ -83,16 +88,14 @@ public class ImageExecutive {
                 Matrix matrix = new Matrix();
                 matrix.setRotate(rotationAngle, (float) bm.getWidth() / 2, (float) bm.getHeight() / 2);
                 rotatedBitmap = Bitmap.createBitmap(bm, 0, 0, bounds.outWidth, bounds.outHeight, matrix, true);
+                File file = new File(_imageDir);
+                file.delete();
+                FileOutputStream out = new FileOutputStream(file);
+                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                out.flush();
+                out.close();
             }
-            else
-                rotatedBitmap = bm;
 
-            File file = new File(_imageDir);
-            file.delete();
-            FileOutputStream out = new FileOutputStream(file);
-            rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            out.flush();
-            out.close();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -262,7 +265,7 @@ public class ImageExecutive {
                         if (img[u][v] >= img[u + GV.adjx[k]][v + GV.adjy[k]])
                             bin |= (1 << k);
                     if (bin > 0 && bin <= GV.n_bins_1_spact)
-                        local_hist[bin] ++;
+                        local_hist[bin]++;
                     else
                         sum_all--;
                 }
@@ -303,7 +306,7 @@ public class ImageExecutive {
                 for (int v = ymin; v <= ymax; v++) {
                     tmp_std += (img[u][v] / 255. - tmp_mean) * (img[u][v] / 255. - tmp_mean);
                 }
-            tmp_std = Math.sqrt(tmp_std) / ((xmax - xmin + 1) * (ymax - ymin + 1));
+            tmp_std = Math.sqrt(tmp_std / ((xmax - xmin + 1) * (ymax - ymin + 1)));
 
             GV.meanPixel[img_index][GV.mstd_index] = tmp_mean;
             GV.stdPixel[img_index][GV.mstd_index] = tmp_std;
@@ -377,7 +380,7 @@ public class ImageExecutive {
 
     public static void testSVM() {
         try {
-            GV._predictedCats.add((int) GV.svm.predict(GV.test));
+            GV._predictedCats.add((int) GV.svm.predict(GV.test.row(0)));
         }
         catch (Exception e) {
             e.printStackTrace();

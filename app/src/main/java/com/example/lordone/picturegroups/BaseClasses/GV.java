@@ -68,7 +68,7 @@ public class GV {
     public static String _cameraTestDir = _folderDir + "CameraTest/";
     public static String _groupsDir = _folderDir + "Groups/";
 
-    public static int train_size = 100; //TODO change latter
+    public static int train_size = 100;
 
     public static int xres, yres;
     public static int sogi_index;

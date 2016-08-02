@@ -33,4 +33,27 @@ public class AlertDia {
             }
         });
     }
+
+    public static void showFinalAlert(Activity _activity, String message) {
+        activity = _activity;
+
+        builder = new AlertDialog.Builder(activity);
+        builder.setTitle("Notification");
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                activity.finish();
+            }
+        });
+        alertDialog = builder.create();
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                alertDialog.show();
+            }
+        });
+    }
 }

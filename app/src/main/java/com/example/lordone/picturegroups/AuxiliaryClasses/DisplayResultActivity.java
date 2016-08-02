@@ -41,6 +41,9 @@ public class DisplayResultActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         int result_type = getIntent().getIntExtra("type", 0);
+        String alert_message = getIntent().getStringExtra("alert");
+        if(alert_message != null && alert_message.length() > 0)
+            AlertDia.showAlert(this, alert_message);
 
         if(result_type == ACCURACY_RESULT) {
             setContentView(R.layout.normal_test_layout);
@@ -64,13 +67,13 @@ public class DisplayResultActivity extends AppCompatActivity {
                 }
             });
 
-            continue_test_button = (Button) findViewById(R.id.continue_test_button);
-            continue_test_button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onBackPressed();
-                }
-            });
+//            continue_test_button = (Button) findViewById(R.id.continue_test_button);
+//            continue_test_button.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    onBackPressed();
+//                }
+//            });
         }
 
         if(result_type == PICTURE_RESULT) {
@@ -110,13 +113,13 @@ public class DisplayResultActivity extends AppCompatActivity {
                 }
             });
 
-            continue_test_button = (Button) findViewById(R.id.continue_test_button);
-            continue_test_button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onBackPressed();
-                }
-            });
+//            continue_test_button = (Button) findViewById(R.id.continue_test_button);
+//            continue_test_button.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    onBackPressed();
+//                }
+//            });
         }
 
         if(result_type == CAMERA_RESULT) {
@@ -129,7 +132,8 @@ public class DisplayResultActivity extends AppCompatActivity {
                 backButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        onBackPressed();
+                        Intent intent = new Intent(DisplayResultActivity.this, MainActivity.class);
+                        startActivity(intent);
                     }
                 });
 
@@ -165,6 +169,8 @@ public class DisplayResultActivity extends AppCompatActivity {
 
         if(result_type == GROUPS) {
             try {
+                ProgressDia.showDialog(this, "Relocating pictures");
+
                 for (int i = 0; i < GV._predictedCats.size(); i++) {
                     FileIO.relocateFile(GV._testListDirs.get(i), GV.ivMapCat.getString(String.valueOf(GV._predictedCats.get(i))));
                 }
@@ -180,19 +186,26 @@ public class DisplayResultActivity extends AppCompatActivity {
                         result += n_predicted[i] + " picture(s) copied to folder " + GV.ivMapCat.getString(String.valueOf(i)) + '\n';
                     }
 
+                ProgressDia.dismissDialog();
+
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Grouping result");
                 builder.setMessage(result);
-                builder.setPositiveButton("To Folder", new DialogInterface.OnClickListener() {
+                builder.setPositiveButton("To Group Folders", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        //TODO
+                        Intent intent = new Intent(DisplayResultActivity.this, FileBrowserActivity.class);
+                        intent.putExtra("path", GV._groupsDir);
+                        intent.putExtra("function", FileBrowserActivity.browser_func);
+                        startActivity(intent);
                     }
                 });
-                builder.setNegativeButton("Back", new DialogInterface.OnClickListener() {
+                builder.setNegativeButton("Main Menu", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
+                        Intent intent = new Intent(DisplayResultActivity.this, MainActivity.class);
+                        startActivity(intent);
                     }
                 });
 

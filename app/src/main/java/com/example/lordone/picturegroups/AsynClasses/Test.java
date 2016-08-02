@@ -63,6 +63,8 @@ public class Test extends AsyncTask<Void, Integer, Integer> {
 
             for(String _file : GV._testListDirs) {
 
+                _file = ImageExecutive.resizeImage(_file);
+                ImageExecutive.rotateImage(_file);
                 Mat raw_img = Highgui.imread(_file, 0);
 
                 GV.sogi_index = GV.spact_index = GV.mstd_index = 0;
@@ -99,10 +101,9 @@ public class Test extends AsyncTask<Void, Integer, Integer> {
         Date endTime = new Date();
         long featuring_time = (endTime.getTime() - beginTime.getTime()) / 1000;
 
-        AlertDia.showAlert(activity, "Categorize " + result + " images in " + featuring_time + " seconds");
-
         Intent intent = new Intent(activity, DisplayResultActivity.class);
         intent.putExtra("type", showResult);
+        intent.putExtra("alert", "Categorize " + result + " image(s) in " + featuring_time + " second(s)");
         activity.startActivity(intent);
     }
 }

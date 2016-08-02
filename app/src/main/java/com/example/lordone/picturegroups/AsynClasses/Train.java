@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
+import android.provider.ContactsContract;
 
 import com.example.lordone.picturegroups.AuxiliaryClasses.AlertDia;
 import com.example.lordone.picturegroups.BaseClasses.FileIO;
@@ -62,6 +63,8 @@ public class Train extends AsyncTask<Void, Integer, Integer> {
         try {
             for(String _file : GV._trainListDirs) {
 
+                _file = ImageExecutive.resizeImage(_file);
+                ImageExecutive.rotateImage(_file);
                 Mat raw_img = Highgui.imread(_file, 0);
 
                 GV.sogi_index = GV.spact_index = GV.mstd_index = 0;
@@ -100,19 +103,11 @@ public class Train extends AsyncTask<Void, Integer, Integer> {
 
         Date endTime = new Date();
         long featuring_time = (endTime.getTime() - beginTime.getTime()) / 1000;
-//        builder.setTitle("Notification");
-//        builder.setMessage("Extracted features of " + result + " images in " + featuring_time + " seconds");
-//        activity.runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                alert = builder.create();
-//                alert.show();
-//            }
-//        });
-        AlertDia.showAlert(activity, "Extracted features of " + result + " images in " + featuring_time + " seconds");
+        AlertDia.showAlert(activity, "Extracted features of " + result + " image(s) in " + featuring_time + " second(s)");
 
         if(testOn)
             new Test(activity, showResult).execute();
+
     }
 
 }

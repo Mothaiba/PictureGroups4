@@ -16,6 +16,7 @@ import com.example.lordone.picturegroups.Functions.StaticTestActivity;
 import com.example.lordone.picturegroups.Functions.TestAccuracyActivity;
 import com.example.lordone.picturegroups.Functions.Train100RandomActivity;
 import com.example.lordone.picturegroups.Functions.TrainActivity;
+import com.example.lordone.picturegroups.MainActivity;
 import com.example.lordone.picturegroups.R;
 
 import java.io.File;
@@ -40,7 +41,8 @@ public class FileBrowserActivity extends ListActivity {
                       train_100_func = 1,
                       static_test_func = 2,
                       test_accuracy_func = 3,
-                      group_picture_func = 4;
+                      group_picture_func = 4,
+                      browser_func = 5;
     HashMap mapName = new HashMap();
     HashMap mapActivity = new HashMap();
     TextView folder_path;
@@ -51,12 +53,14 @@ public class FileBrowserActivity extends ListActivity {
         mapName.put(static_test_func, "Static Test");
         mapName.put(test_accuracy_func, "Test Accuracy");
         mapName.put(group_picture_func, "Group Pictures");
+        mapName.put(browser_func, "Browser");
 
         mapActivity.put(train_func, TrainActivity.class);
         mapActivity.put(train_100_func, Train100RandomActivity.class);
         mapActivity.put(static_test_func, StaticTestActivity.class);
         mapActivity.put(test_accuracy_func, TestAccuracyActivity.class);
         mapActivity.put(group_picture_func, GroupPicturesActivity.class);
+        mapActivity.put(browser_func, MainActivity.class);
     }
 
     @Override
@@ -66,12 +70,27 @@ public class FileBrowserActivity extends ListActivity {
 
         function_this = getIntent().getIntExtra("function", 0);
 
+        mSelectButton = (Button) findViewById(R.id.selectButton);
+        mSelectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(FileBrowserActivity.this, (Class) mapActivity.get(function_this));
+                intent.putExtra("path", _path);
+                startActivity(intent);
+            }
+        });
+
+        if(function_this == browser_func) {
+            mSelectButton.setText("To Main Menu");
+        }
+
+
         initMaps();
         title = (TextView) findViewById(R.id.description_browser);
         title.setText((String) mapName.get(function_this));
 
         // Use the current directory as title
-        _path = "/";
+        _path = "/Removable/MicroSD/";
         if (getIntent().hasExtra("path")) {
             _path = getIntent().getStringExtra("path");
         }
@@ -136,16 +155,6 @@ public class FileBrowserActivity extends ListActivity {
 
         adapter = new FileArrayAdapter(FileBrowserActivity.this, R.layout.file_view, dir);
         this.setListAdapter(adapter);
-
-        mSelectButton = (Button) findViewById(R.id.selectButton);
-        mSelectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(FileBrowserActivity.this, (Class) mapActivity.get(function_this));
-                intent.putExtra("path", _path);
-                startActivity(intent);
-            }
-        });
 
     }
 
