@@ -135,12 +135,20 @@ public class DisplayResultActivity extends AppCompatActivity {
         }
 
         String result = "";
+        double average = 0;
+        int n_categories = 0;
         for(int i = 0; i < GV._uniqueCatNames.length; i++)
             if(n_real[i] > 0) {
+                double accuracy = (double) n_predich_correct[i] / n_real[i] * 100;
                 result += GV._uniqueCatNames[i] + ": " +
-                        String.format("%.2f", (double) n_predich_correct[i] / n_real[i] * 100) +
+                        String.format("%.2f", accuracy) +
                         "% (" + n_predich_correct[i] + "/" + n_real[i] + " images)" + '\n';
+                average += accuracy;
+                n_categories++;
             }
+
+        if(n_categories > 0)
+            result += "Overall accuracy: " + String.format("%.2f", average / n_categories) + "%";
 
         return result;
     }
