@@ -1,7 +1,6 @@
 package com.example.lordone.picturegroups;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,35 +10,18 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.example.lordone.picturegroups.AuxiliaryClasses.FileBrowserActivity;
 import com.example.lordone.picturegroups.BaseClasses.FileIO;
 import com.example.lordone.picturegroups.BaseClasses.GV;
 
-import org.json.JSONObject;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.TermCriteria;
-import org.opencv.highgui.Highgui;
-import org.opencv.ml.CvSVM;
-import org.opencv.ml.CvSVMParams;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,18 +39,19 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        new InitLoadSVM().execute(this);
         GV.init();
 
-//        mTrainButton = (ImageButton) findViewById(R.id.trainButton);
-//        mTrainButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                YoYo.with(Techniques.Swing).duration(500).playOn(mTrainButton);
-//                Intent intent = new Intent(MainActivity.this, FileBrowserActivity.class);
-//                intent.putExtra("function", FileBrowserActivity.train_func);
-//                startActivity(intent);
-//            }
-//        });
+        mTrainButton = (ImageButton) findViewById(R.id.trainButton);
+        mTrainButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                YoYo.with(Techniques.Swing).duration(500).playOn(mTrainButton);
+                Intent intent = new Intent(MainActivity.this, FileBrowserActivity.class);
+                intent.putExtra("function", FileBrowserActivity.train_func);
+                startActivity(intent);
+            }
+        });
 
         mTrain100RandomButton = (ImageButton) findViewById(R.id.train100RandomButton);
         mTrain100RandomButton.setOnClickListener(new View.OnClickListener() {
@@ -83,21 +66,21 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-//        mStaticTestButton = (ImageButton) findViewById(R.id.staticTestButton);
-//        mStaticTestButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(GV.svm != null) {
-//                    YoYo.with(Techniques.Swing).duration(500).playOn(mStaticTestButton);
-//                    Intent intent = new Intent(MainActivity.this, FileBrowserActivity.class);
-//                    intent.putExtra("function", FileBrowserActivity.static_test_func);
-//                    startActivity(intent);
-//                }
-//                else {
-//                    Toast.makeText(MainActivity.this, "You must train first!", Toast.LENGTH_LONG).show();
-//                }
-//            }
-//        });
+        mStaticTestButton = (ImageButton) findViewById(R.id.staticTestButton);
+        mStaticTestButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(GV.svm != null) {
+                    YoYo.with(Techniques.Swing).duration(500).playOn(mStaticTestButton);
+                    Intent intent = new Intent(MainActivity.this, FileBrowserActivity.class);
+                    intent.putExtra("function", FileBrowserActivity.static_test_func);
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(MainActivity.this, "You must train first!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
 //
 //        mCameraTestButton = (ImageButton) findViewById(R.id.cameraTestButton);
 //        mCameraTestButton.setOnClickListener(new View.OnClickListener() {

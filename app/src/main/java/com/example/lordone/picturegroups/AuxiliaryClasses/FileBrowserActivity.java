@@ -1,4 +1,4 @@
-package com.example.lordone.picturegroups;
+package com.example.lordone.picturegroups.AuxiliaryClasses;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -10,8 +10,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.lordone.picturegroups.BaseClasses.FileArrayAdapter;
-import com.example.lordone.picturegroups.BaseClasses.GV;
 import com.example.lordone.picturegroups.BaseClasses.Item;
+import com.example.lordone.picturegroups.Functions.StaticTestActivity;
+import com.example.lordone.picturegroups.Functions.Train100RandomActivity;
+import com.example.lordone.picturegroups.Functions.TrainActivity;
+import com.example.lordone.picturegroups.R;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -47,9 +50,9 @@ public class FileBrowserActivity extends ListActivity {
         mapName.put(test_accuracy_func, "Test Accuracy");
         mapName.put(group_picture_func, "Group Pictures");
 
-//        mapActivity.put(train_func, TrainActivity.class);
+        mapActivity.put(train_func, TrainActivity.class);
         mapActivity.put(train_100_func, Train100RandomActivity.class);
-//        mapActivity.put(static_test_func, StaticTestActivity.class);
+        mapActivity.put(static_test_func, StaticTestActivity.class);
 //        mapActivity.put(test_accuracy_func, TestAccuracyActivity.class);
 //        mapActivity.put(group_picture_func, GroupPicturesActivity.class);
     }
@@ -66,7 +69,7 @@ public class FileBrowserActivity extends ListActivity {
         title.setText((String) mapName.get(function_this));
 
         // Use the current directory as title
-        _path = "/Removable/MicroSD/1_mini_15cat";
+        _path = "/Removable/MicroSD";
         if (getIntent().hasExtra("path")) {
             _path = getIntent().getStringExtra("path");
         }
@@ -148,7 +151,6 @@ public class FileBrowserActivity extends ListActivity {
     protected void onListItemClick(ListView l, View v, int position, long id) {
         Item it =  adapter.getItem(position);
         String _filename = it.getName();
-        String _backup_filename = _filename;
 
         if (_path.endsWith(File.separator)) {
             _filename = _path + _filename ;
@@ -169,7 +171,7 @@ public class FileBrowserActivity extends ListActivity {
                 if(_filename.endsWith(".jpg") || _filename.endsWith(".jpeg") || _filename.endsWith(".png") || _filename.endsWith(".gif")) {
                     Intent intent = new Intent(FileBrowserActivity.this, (Class) mapActivity.get(function_this));
                     intent.putExtra("path", _path);
-                    intent.putExtra("file_name", _backup_filename);
+                    intent.putExtra("file_name", _filename);
                     startActivity(intent);
                 }
                 else {

@@ -1,5 +1,7 @@
 package com.example.lordone.picturegroups.BaseClasses;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -8,11 +10,17 @@ import android.media.ExifInterface;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.ml.CvSVM;
+import org.opencv.ml.CvSVMParams;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Vector;
 
 /**
@@ -91,70 +99,23 @@ public class ImageExecutive {
         }
     }
 
-    public static void computeGradient(int xmax, int ymax) {
-
-    double vert, hori;
-    double tmpinten;
-    int inten, orient;
-
-    GV.shape = new int[xmax + 1][ymax + 1];
-
-    for (int i = 0; i <= xmax; i++) for (int j = 0; j <= ymax; j++) {
-        if (i > 0 && i < xmax)
-            vert = GV.img[i - 1][j] - GV.img[i + 1][j];
-        else if (i == 0)
-            vert = GV.img[i][j] - GV.img[i + 1][j];
-        else
-            vert = GV.img[i - 1][j] - GV.img[i][j];
-        if (j > 0 && j < ymax)
-            hori = GV.img[i][j + 1] - GV.img[i][j - 1];
-        else if (j == 0)
-            hori = GV.img[i][j + 1] - GV.img[i][j];
-        else
-            hori = GV.img[i][j] - GV.img[i][j - 1];
-
-        if (hori == 0)
-            orient = 1;
-        else
-            orient = (int) ((Math.atan(vert / hori) / GV.pi * 180 + 90) / GV.iorient + 1);
-        tmpinten = Math.sqrt(vert * vert + hori * hori);
-        if (tmpinten <= GV.eps)
-            inten = 0;
-        else if (tmpinten <= GV.threshold[1])
-            inten = 1;
-        else if (tmpinten <= GV.threshold[2])
-            inten = 2;
-        else
-            inten = 3;
-        if (inten != 0)
-            GV.shape[i][j] = (inten - 1) * GV.norient + orient;
-    }
-//    FileIO.writeArrayIntToFile(GV.shape, xmax + 1, ymax + 1, "shape.csv");
-}
-
-    public static void compute_2_hist(Mat mat_img, int lvl) {
-        int [][] local_hist_sogi = new int[GV.nshapes + 1][GV.nshapes + 1];
-        int [] local_hist_spact = new int[GV.n_bins_1_spact + 1];
+    public static int[][] matToMatrix(Mat mat_img) {
         int xres = mat_img.rows();
         int yres = mat_img.cols();
-        GV.img = new int[xres][yres];
-
-        int xmin, xmax, ymin, ymax;
-
+        int[][] img = new int[xres][yres];
         for (int i = 0; i < xres; i++)
             for (int j = 0; j < yres; j++)
-                GV.img[i][j] = (int) mat_img.get(i, j)[0];
+                img[i][j] = (int) mat_img.get(i, j)[0];
+        GV.xres = xres;
+        GV.yres = yres;
+        return img;
+    }
 
-        computeGradient(xres - 1, yres - 1);
-
+    public static void getPatches(Vector h_min_vec, Vector h_max_vec, Vector w_min_vec, Vector w_max_vec, int lvl, int xres, int yres) {
         int to_divide = 1 << lvl;
         int h_range = (xres - 2) / to_divide;
         int w_range = (yres - 2) / to_divide;
 
-        Vector<Integer> h_min_vec = new Vector<>();
-        Vector<Integer> h_max_vec = new Vector<>();
-        Vector<Integer> w_min_vec = new Vector<>();
-        Vector<Integer> w_max_vec = new Vector<>();
         for (int h_min = 1, h_max = h_min + h_range - 1; h_max < xres - 1; h_min = h_max + 1, h_max = h_min + h_range - 1)
             for (int w_min = 1, w_max = w_min + w_range - 1; w_max < yres - 1; w_min = w_max + 1, w_max = w_min + w_range - 1) {
                 h_min_vec.add(h_min);
@@ -169,247 +130,255 @@ public class ImageExecutive {
                 w_min_vec.add(w_min);
                 w_max_vec.add(w_max);
             }
+    }
 
-        int tmp_shape, tmp_shape_2;
-        for (int i = 0; i < h_min_vec.size(); i++, GV.mstd_index++) {
-            xmin = h_min_vec.get(i);
-            xmax = h_max_vec.get(i);
-            ymin = w_min_vec.get(i);
-            ymax = w_max_vec.get(i);
-            int sum_all_sogi = h_range * w_range * 8;
-            int sum_all_spact = h_range * w_range;
-            for(int[] row : local_hist_sogi)
-                Arrays.fill(row, 0);
-            Arrays.fill(local_hist_spact, 0);
+    public static void releaseAuxiliary() {
+        GV.sogi = null;
+        GV.spact = null;
+        GV.shape = null;
+        GV.meanPixel = null;
+        GV.stdPixel = null;
 
-            int bin = 0;
+        System.gc();
+    }
 
+    // image is of size [0..xmax][0..ymax]
+    public static void computeGradient(int [][] img, int xmax, int ymax) {
+
+        double vert, hori;
+        double tmpinten;
+        int inten, orient;
+
+        GV.shape = new int[xmax + 1][ymax + 1];
+
+        for (int i = 0; i <= xmax; i++) for (int j = 0; j <= ymax; j++) {
+            if (i > 0 && i < xmax)
+                vert = img[i - 1][j] - img[i + 1][j];
+            else if (i == 0)
+                vert = img[i][j] - img[i + 1][j];
+            else
+                vert = img[i - 1][j] - img[i][j];
+            if (j > 0 && j < ymax)
+                hori = img[i][j + 1] - img[i][j - 1];
+            else if (j == 0)
+                hori = img[i][j + 1] - img[i][j];
+            else
+                hori = img[i][j] - img[i][j - 1];
+
+            if (hori == 0)
+                orient = 1;
+            else
+                orient = (int) ((Math.atan(vert / hori) / GV.pi * 180 + 90) / GV.iorient + 1);
+            tmpinten = Math.sqrt(vert * vert + hori * hori);
+            if (tmpinten <= GV.eps)
+                inten = 0;
+            else if (tmpinten <= GV.threshold[1])
+                inten = 1;
+            else if (tmpinten <= GV.threshold[2])
+                inten = 2;
+            else
+                inten = 3;
+            if (inten != 0)
+                GV.shape[i][j] = (inten - 1) * GV.norient + orient;
+        }
+//    FileIO.writeArrayIntToFile(GV.shape, xmax + 1, ymax + 1, "shape.csv");
+    }
+
+    public static void computeSogi(int img_index, int[][] img, int lvl) {
+        int[][] local_hist = new int[GV.nshapes + 1][GV.nshapes + 1]; // assumed that this is initialized with 0 values
+        int xres = GV.xres;
+        int yres = GV.yres;
+
+        computeGradient(img, xres - 1, yres - 1);
+
+        Vector<Integer> h_min_vec = new Vector<>();
+        Vector<Integer> h_max_vec = new Vector<>();
+        Vector<Integer> w_min_vec = new Vector<>();
+        Vector<Integer> w_max_vec = new Vector<>();
+        getPatches(h_min_vec, h_max_vec, w_min_vec, w_max_vec, lvl, xres, yres);
+
+        for (int patch_index = 0; patch_index < h_min_vec.size(); patch_index++) {
+            int xmin = h_min_vec.get(patch_index);
+            int xmax = h_max_vec.get(patch_index);
+            int ymin = w_min_vec.get(patch_index);
+            int ymax = w_max_vec.get(patch_index);
+
+            int sum_all = (xmax - xmin + 1) * (ymax - ymin + 1) * 8;
+
+            int tmp_shape, tmp_shape_2;
             for (int u = xmin; u <= xmax; u++)
                 for (int v = ymin; v <= ymax; v++) {
                     tmp_shape = GV.shape[u][v];
                     if (tmp_shape == 0) {
-                        sum_all_sogi -= 8;
-                    }
-                    else {
+                        sum_all -= 8;
+                    } else {
                         for (int k = 0; k < 8; k++) {
                             tmp_shape_2 = GV.shape[u + GV.adjx[k]][v + GV.adjy[k]];
-                            if (tmp_shape_2 == 0) {
-                                sum_all_sogi--;
-                                continue;
-                            }
-                            local_hist_sogi[tmp_shape][tmp_shape_2]++;
+                            if (tmp_shape_2 == 0)
+                                sum_all--;
+                            else
+                                local_hist[tmp_shape][tmp_shape_2]++;
                         }
                     }
+                }
 
+            int bin_index = patch_index * GV.n_bins_1_sogi;
+            if (sum_all > 0)
+                for (int p = 1; p <= GV.nshapes; p++)
+                    for (int q = 1; q <= GV.nshapes; q++, bin_index++)
+                        GV.sogi[img_index][bin_index] = (double) local_hist[p][q] / sum_all;
+
+        }
+    }
+
+    public static void computeSpact(int img_index, int[][] img, int lvl) {
+        int[] local_hist = new int[GV.n_bins_1_spact + 1]; // assumed that this is initialized with 0 values
+        int xres = GV.xres;
+        int yres = GV.yres;
+        int bin;
+
+        Vector<Integer> h_min_vec = new Vector<>();
+        Vector<Integer> h_max_vec = new Vector<>();
+        Vector<Integer> w_min_vec = new Vector<>();
+        Vector<Integer> w_max_vec = new Vector<>();
+        getPatches(h_min_vec, h_max_vec, w_min_vec, w_max_vec, lvl, xres, yres);
+
+        for (int patch_index = 0; patch_index < h_min_vec.size(); patch_index++) {
+            int xmin = h_min_vec.get(patch_index);
+            int xmax = h_max_vec.get(patch_index);
+            int ymin = w_min_vec.get(patch_index);
+            int ymax = w_max_vec.get(patch_index);
+
+            int sum_all = (xmax - xmin + 1) * (ymax - ymin + 1);
+
+            for (int u = xmin; u <= xmax; u++)
+                for (int v = ymin; v <= ymax; v++) {
                     bin = 0;
                     for (int k = 0; k < 8; k++)
-                        if (GV.img[u][v] >= GV.img[u + GV.adjx[k]][v + GV.adjy[k]])
+                        if (img[u][v] >= img[u + GV.adjx[k]][v + GV.adjy[k]])
                             bin |= (1 << k);
                     if (bin > 0 && bin <= GV.n_bins_1_spact)
-                        local_hist_spact[bin] ++;
+                        local_hist[bin] ++;
                     else
-                        sum_all_spact--;
-
+                        sum_all--;
                 }
 
-            if (sum_all_sogi > 0)
-                for (int p = 1; p <= GV.nshapes; p++)
-                    for (int q = 1; q <= GV.nshapes; q++, GV.bin_index++)
-                        GV.hist_all[GV.img_index][GV.bin_index] = (double)local_hist_sogi[p][q] / sum_all_sogi;
-            else
-                GV.bin_index += GV.n_bins_1_sogi;
+            int bin_index = patch_index * GV.n_bins_1_spact;
+            if (sum_all > 0)
+                for (int p = 1; p <= GV.n_bins_1_spact; p++, bin_index++)
+                    GV.spact[img_index][bin_index] = (double) local_hist[p] / sum_all;
+        }
+    }
 
-            if (sum_all_spact > 0)
-                for (int p = 1; p <= GV.n_bins_1_spact; p++, GV.bin_index++)
-                    GV.hist_all[GV.img_index][GV.bin_index] = (double) local_hist_spact[p] / sum_all_spact;
-            else
-                GV.bin_index += GV.n_bins_1_spact;
+    public static void computeMeanSTD(int img_index, int[][] img, int lvl) {
+        double tmp_mean;
+        double tmp_std;
+        int xres = GV.xres;
+        int yres = GV.yres;
 
-            double tmp_mean = 0;
+        Vector<Integer> h_min_vec = new Vector<>();
+        Vector<Integer> h_max_vec = new Vector<>();
+        Vector<Integer> w_min_vec = new Vector<>();
+        Vector<Integer> w_max_vec = new Vector<>();
+        getPatches(h_min_vec, h_max_vec, w_min_vec, w_max_vec, lvl, xres, yres);
+
+        for (int patch_index = 0; patch_index < h_min_vec.size(); patch_index++) {
+            int xmin = h_min_vec.get(patch_index);
+            int xmax = h_max_vec.get(patch_index);
+            int ymin = w_min_vec.get(patch_index);
+            int ymax = w_max_vec.get(patch_index);
+
+            tmp_mean = tmp_std = 0;
             for (int u = xmin; u <= xmax; u++)
                 for (int v = ymin; v <= ymax; v++) {
-                    tmp_mean += GV.img[u][v];
+                    tmp_mean += img[u][v];
                 }
-            tmp_mean /= (h_range * w_range);
+            tmp_mean /= ((xmax - xmin + 1) * (ymax - ymin + 1));
             tmp_mean /= 255;
 
-            double tmp_std = 0;
             for (int u = xmin; u <= xmax; u++)
                 for (int v = ymin; v <= ymax; v++) {
-                    tmp_std += (GV.img[u][v] / 255. - tmp_mean) * (GV.img[u][v] / 255. - tmp_mean);
+                    tmp_std += (img[u][v] / 255. - tmp_mean) * (img[u][v] / 255. - tmp_mean);
                 }
-            tmp_std = Math.sqrt(tmp_std) / (h_range * w_range);
+            tmp_std = Math.sqrt(tmp_std) / ((xmax - xmin + 1) * (ymax - ymin + 1));
 
-            GV.mean_val[GV.img_index][GV.mstd_index] = tmp_mean;
-            GV.std_val[GV.img_index][GV.mstd_index] = tmp_std;
+            GV.meanPixel[img_index][patch_index] = tmp_mean;
+            GV.stdPixel[img_index][patch_index] = tmp_std;
+        }
+    }
+
+    public static void combineToTrain(int n_images) {
+
+        int sogi_bound = GV.n_patches * GV.n_bins_1_sogi;
+        int spact_bound = sogi_bound + GV.n_patches * GV.n_bins_1_spact;
+        int mean_bound = spact_bound + GV.n_patches;
+        int std_bound = mean_bound + GV.n_patches;
+
+        for(int i = 0; i < n_images; i++) {
+            for(int j = 0; j < sogi_bound; j++)
+                GV.train.put(i, j, GV.sogi[i][j]);
+
+            for(int j = sogi_bound, k = 0; j < spact_bound; j++, k++)
+                GV.train.put(i, j, GV.spact[i][k]);
+
+            for(int j = spact_bound, k = 0; j < mean_bound; j++, k++)
+                GV.train.put(i, j, GV.meanPixel[i][k]);
+
+            for(int j = mean_bound, k = 0; j < std_bound; j++, k++)
+                GV.train.put(i, j, GV.stdPixel[i][k]);
 
         }
     }
 
-    public static void normalize_hist(int nrow, int ncol) {
-        double [] mean = new double[ncol];
-        double [] dev = new double[ncol];
-        for (int j = 0; j < ncol; j++)
-            mean[j] = dev[j] = 0;
+    public static void combineToTest() {
+        int sogi_bound = GV.n_patches * GV.n_bins_1_sogi;
+        int spact_bound = sogi_bound + GV.n_patches * GV.n_bins_1_spact;
+        int mean_bound = spact_bound + GV.n_patches;
+        int std_bound = mean_bound + GV.n_patches;
 
+        for(int j = 0; j < sogi_bound; j++)
+            GV.test.put(0, j, GV.sogi[0][j]);
 
-        for (int i = 0; i < nrow; i++) {
-            for (int j = 0; j < ncol; j++)
-                mean[j] += GV.hist_all[i][j];
-        }
+        for(int j = sogi_bound, k = 0; j < spact_bound; j++, k++)
+            GV.test.put(0, j, GV.spact[0][k]);
 
-        for (int j = 0; j < ncol; j++)
-            mean[j] /= nrow;
-        for (int i = 0; i < nrow; i++)
-            for (int j = 0; j < ncol; j++)
-                GV.hist_all[i][j] -= mean[j];
+        for(int j = spact_bound, k = 0; j < mean_bound; j++, k++)
+            GV.test.put(0, j, GV.meanPixel[0][k]);
 
-        for (int i = 0; i < nrow; i++)
-            for (int j = 0; j < ncol; j++)
-                dev[j] += GV.hist_all[i][j] * GV.hist_all[i][j];
-        for (int j = 0; j < ncol; j++)
-            dev[j] = Math.sqrt(dev[j]) / nrow;
-        for (int i = 0; i < nrow; i++)
-            for (int j = 0; j < ncol; j++)
-                GV.hist_all[i][j] /= dev[j];
+        for(int j = mean_bound, k = 0; j < std_bound; j++, k++)
+            GV.test.put(0, j, GV.stdPixel[0][k]);
 
-//        FileIO.writeArrayToFile(GV.hist_all, nrow, ncol, "hist.csv");
     }
 
-    public static void doPCA() {
-        Mat sample_sogi_to_pca = new Mat(GV.img_index, GV.n_bins_1_sogi, CvType.CV_32F);
-        Mat sample_spact_to_pca = new Mat(GV.img_index, GV.n_bins_1_spact, CvType.CV_32F);
-        Mat compressed = new Mat(GV.img_index, GV.n_compressor * GV.n_patches * 2, CvType.CV_32F);
-        int min_com_col;
-        int min_col = 0, max_col = -1;
-        for (int ind = 0; ind < GV.n_patches; ind++) {
-            min_col = max_col + 1;
-            max_col = min_col + GV.n_bins_1_sogi - 1;
+    public static void trainSVM() {
+        try {
+            CvSVMParams params = new CvSVMParams();
+            params.set_svm_type(CvSVM.C_SVC);
+            params.set_kernel_type(CvSVM.LINEAR);
 
-            for(int i = 0; i < GV.img_index; i++)
-                for(int j = min_col, k = 0; j <= max_col; j++, k++) {
-                    sample_sogi_to_pca.put(i, k, GV.hist_all[i][j]);
-//                    System.out.print(sample_sogi_to_pca.get(i, k)[0]);
-                }
+            GV.svm = new CvSVM();
 
-//            int i = 0;
-//            for (int cat = 0; cat < GV.mapTarget.length(); cat++) {
-//                int sample_from = GV.begin_of_category.get(cat);
-//                int sample_upto = sample_from + GV.n_train_pca;
-//                for (int dem = sample_from; dem < sample_upto; dem++, i++)
-//                    for (int j = min_col, k = 0; j <= max_col; j++, k++) {
-//                        sample_sogi_to_pca.put(i, k, GV.hist_all[dem][j]);
-//                    }
-//            }
-
-//            for (int i = 0; i < GV.img_index; i++) {
-//                for (int j = min_col, k = 0; j <= max_col; j++, k++) {
-//                    df_sogi.put(i, k, GV.hist_all[i][j]);
-//                }
-//            }
-
-            Mat pca_mean_sogi = new Mat();
-            Mat pca_eigenvectors_sogi = new Mat();
-
-            Core.PCACompute(sample_sogi_to_pca, pca_mean_sogi, pca_eigenvectors_sogi, GV.n_compressor);
-
-            Mat coeffs1 = new Mat(1, GV.n_compressor, CvType.CV_32F);
-            for (int i = 0; i < GV.img_index; i++) {
-                Mat vec = sample_sogi_to_pca.row(i);
-                Core.PCAProject(vec, pca_mean_sogi, pca_eigenvectors_sogi, coeffs1);
-                min_com_col = ind * (GV.n_compressor * 2);
-                for (int j = 0; j < GV.n_compressor; j++, min_com_col++)
-                    compressed.put(i, min_com_col, coeffs1.get(0, j));
+            Mat label = new Mat(1, GV._trainCats.size(), CvType.CV_32S);
+            for (int i = 0; i < GV._trainCats.size(); i++) {
+                label.put(0, i, GV._trainCats.get(i));
             }
 
-            //----------------------
-
-            min_col = max_col + 1;
-            max_col = min_col + GV.n_bins_1_spact - 1;
-
-            for(int i = 0; i < GV.img_index; i++)
-                for(int j = min_col, k = 0; j <= max_col; j++, k++)
-                    sample_spact_to_pca.put(i, k, GV.hist_all[i][j]);
-
-//            i = 0;
-//            for (int cat = 0; cat < GV.mapTarget.length(); cat++) {
-//                int sample_from = GV.begin_of_category.get(cat);
-//                int sample_upto = sample_from + GV.n_train_pca;
-//                for (int dem = sample_from; dem < sample_upto; dem++, i++)
-//                    for (int j = min_col, k = 0; j <= max_col; j++, k++) {
-//                        sample_spact_to_pca.put(i, k, GV.hist_all[dem][j]);
-//                    }
-//            }
-//
-//            for (i = 0; i < GV.img_index; i++) {
-//                for (int j = min_col, k = 0; j <= max_col; j++, k++) {
-//                    df_spact.put(i, k, GV.hist_all[i][j]);
-//                }
-//            }
-
-            Mat pca_mean_spact = new Mat();
-            Mat pca_eigenvectors_spact = new Mat();
-
-            Core.PCACompute(sample_spact_to_pca ,pca_mean_spact, pca_eigenvectors_spact, GV.n_compressor);
-
-            Mat coeffs2 = new Mat(1, GV.n_compressor, CvType.CV_32F);
-            for (int i = 0; i < GV.img_index; i++) {
-                Mat vec = sample_spact_to_pca.row(i);
-                Core.PCAProject(vec, pca_mean_spact, pca_eigenvectors_spact, coeffs2);
-                min_com_col = (ind * 2 + 1) * GV.n_compressor;
-                for (int j = 0; j < GV.n_compressor; j++, min_com_col++)
-                    compressed.put(i, min_com_col, coeffs2.get(0, j));
-            }
-
+            GV.svm.train(GV.train, label);
+            FileIO.writeSVMToFile(GV.svm);
         }
-
-        FileIO.writeMatToFile(compressed, GV.img_index, GV.n_compressed_col, "ultimate.csv");
-        FileIO.writeArrayToFile(GV.mean_val, GV.img_index, GV.mstd_index, "mean_val.csv");
-        FileIO.writeArrayToFile(GV.std_val, GV.img_index, GV.mstd_index, "std_val.csv");
-
-        //TODO: combine compressed with mean_val and std_val, train SVM
-
-//        writeUltimate(compressed, row, n_compressed_col);
-
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-//    public static void normalizeFeatures_train() {
-//        double sumAround;
-//        for (int d = 1; d <= GV.maxDist; d++) for (int o = 1; o <= GV.norient; o++) for (int i = 1; i <= GV.ninten; i++) for(int pos = 1; pos <= GV.npos; pos++) {
-//            sumAround = 0;
-//            for (int u = 1; u <= GV.norient; u++) for (int v = 1; v <= GV.ninten; v++)
-//                sumAround += GV.features[d][o][i][u][v][pos];
-//            if (sumAround > GV.eps)
-//                for (int u = 1; u <= GV.norient; u++) for (int v = 1; v <= GV.ninten; v++)
-//                    GV.features[d][o][i][u][v][pos] /= sumAround;
-//        }
-////        FileIO.writeFileFeatures();
-//        int dem = 0;
-//        for (int d = 1; d <= GV.maxDist; d++) for (int o1 = 1; o1 <= GV.norient; o1++)
-//            for (int i1 = 1; i1 <= GV.ninten; i1++) for (int o2 = 1; o2 <= GV.norient; o2++)
-//                for (int i2 = 1; i2 <= GV.ninten; i2++) for(int pos = 1; pos <= GV.npos; pos++){
-//                    GV.sogi.put(GV.cnt, dem++, (float) GV.features[d][o1][i1][o2][i2][pos]);
-//                }
-//    }
-
-//    public static void normalizeFeatures_test() {
-//        double sumAround;
-//        for (int d = 1; d <= GV.maxDist; d++) for (int o = 1; o <= GV.norient; o++) for (int i = 1; i <= GV.ninten; i++) for(int pos = 1; pos <= GV.npos; pos++) {
-//            sumAround = 0;
-//            for (int u = 1; u <= GV.norient; u++) for (int v = 1; v <= GV.ninten; v++)
-//                sumAround += GV.features[d][o][i][u][v][pos];
-//            if (sumAround > GV.eps)
-//                for (int u = 1; u <= GV.norient; u++) for (int v = 1; v <= GV.ninten; v++)
-//                    GV.features[d][o][i][u][v][pos] /= sumAround;
-//        }
-//
-//        int dem = 0;
-//        for (int d = 1; d <= GV.maxDist; d++) for (int o1 = 1; o1 <= GV.norient; o1++)
-//            for (int i1 = 1; i1 <= GV.ninten; i1++) for (int o2 = 1; o2 <= GV.norient; o2++)
-//                for (int i2 = 1; i2 <= GV.ninten; i2++) for(int pos = 1; pos <= GV.npos; pos++){
-//                    GV.testMat.put(0, dem++, (float) GV.features[d][o1][i1][o2][i2][pos]);
-//                }
-//    }
+    public static void testSVM() {
+        try {
+            GV._predictedCats.add((int) GV.svm.predict(GV.test));
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static Bitmap getBitmap(String _image) {
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -417,11 +386,5 @@ public class ImageExecutive {
         Bitmap photo = BitmapFactory.decodeFile(_image, options);
         return photo;
     }
-
-//    public static void releaseMemory() {
-//        GV.sogi = null;
-//        GV.features = null;
-//        System.gc();
-//    }
 
 }

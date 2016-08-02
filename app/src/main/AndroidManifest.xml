@@ -32,13 +32,31 @@
         </activity>
 
         <activity
-            android:name=".Train100RandomActivity"
+            android:name=".Functions.TrainActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 
         <activity
-            android:name=".FileBrowserActivity"
+            android:name=".Functions.Train100RandomActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity
+            android:name=".Functions.StaticTestActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity
+            android:name=".AuxiliaryClasses.FileBrowserActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity
+            android:name=".AuxiliaryClasses.DisplayResultActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>

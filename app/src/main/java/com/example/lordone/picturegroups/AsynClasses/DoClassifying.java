@@ -16,6 +16,9 @@ import com.example.lordone.picturegroups.R;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.Date;
 
@@ -45,10 +48,9 @@ public class DoClassifying extends AsyncTask<Void, Integer, String> {
 
 //    @Override
     protected String doInBackground(Void... voids) {
-        return null; //remove this
+        String toShow = "";
+        boolean isTrue;
 
-//        String toShow = "";
-//        boolean isTrue;
 //        try {
 //            FileIO.readSVMFromFile();
 //            beginTime = new Date();
@@ -61,12 +63,25 @@ public class DoClassifying extends AsyncTask<Void, Integer, String> {
 //            double sumAccuracy = 0;
 //
 //            for(String _file : GV._testListDirs) {
-//                GV.testMat = new Mat(1, GV.nCol, CvType.CV_32F);
-//                ImageExecutive.load1Image(_file);
-//                ImageExecutive.computeGradient();
-//                ImageExecutive.computeFeatures();
-//                ImageExecutive.normalizeFeatures_test();
-//                isTrue = ((GV._testTarget.get(cnt)).compareTo(GV.ivMapTarget.getString(String.valueOf((int) GV.svm.predict(GV.testMat)))) == 0);
+//
+//                Mat raw_img = Highgui.imread(_file, 0);
+//                GV.xres = raw_img.rows() - 1;
+//                GV.yres = raw_img.cols() - 1;
+//                GV.bin_index = 0;
+//                GV.test_hist_all = new double[1][GV.n_patches * (GV.n_bins_1_sogi + GV.n_bins_1_spact + 2) + 5];
+//
+//                Mat mat_img = new Mat();
+//                for (int lvl = 0; lvl <= GV.spm_max; lvl++) {
+//                    Size size = new Size(raw_img.cols() / (1 << (GV.spm_max - lvl)), raw_img.rows() / (1 << (GV.spm_max - lvl)));
+//                    Imgproc.resize(raw_img, mat_img, size);
+//                    ImageExecutive.compute_2_hist(mat_img, lvl, GV.test_hist_all);
+//                }
+//
+//                GV.test_ultimateFeatures = new Mat(1, GV.n_compressed_col, CvType.CV_32F);
+//                ImageExecutive.projectPCA(GV.test_hist_all, GV.test_ultimateFeatures);
+//
+//                isTrue = ((GV._testTarget.get(cnt)).compareTo(GV.ivMapTarget.getString(String.valueOf((int) GV.svm.predict(GV.test_ultimateFeatures)))) == 0);
+//
 //                if(cnt > 0 && ( GV._testTarget.get(cnt)).compareTo(GV._testTarget.get(cnt - 1)) != 0) {
 //                    double thisCategoryAccuracy = 100. * in1CategoryTrue / in1CategoryAll;
 //                    toShow += GV._testTarget.get(cnt - 1) + ": " + thisCategoryAccuracy + '\n';
@@ -80,6 +95,8 @@ public class DoClassifying extends AsyncTask<Void, Integer, String> {
 //                    in1CategoryTrue++;
 //                }
 //                publishProgress(++cnt);
+//
+//                cnt++;
 //            }
 //
 //            double thisCategoryAccuracy = 100. * in1CategoryTrue / in1CategoryAll;
@@ -88,7 +105,7 @@ public class DoClassifying extends AsyncTask<Void, Integer, String> {
 //            double overAllAccuracy = sumAccuracy / nCategories;
 //            toShow += '\n' + "Over all: " + overAllAccuracy;
 //
-//            return toShow;
+            return toShow;
 //        }
 //        catch (Exception e) {
 //            return toShow;

@@ -76,7 +76,7 @@ public class FileIO {
 
 //    }
 
-    public static boolean writeSOGIToFile() {
+    public static boolean writeAuxiliaryToFile() {
         try {
             File fileDir = new File(GV._folderDir);
             if(!fileDir.exists()){
@@ -85,37 +85,13 @@ public class FileIO {
 
             FileWriter writer;
 
-//            // save SOGI features
-//            File file = new File(fileDir, GV._sogiSaveFile);
-//            writer = new FileWriter(file);
-//
-//            for(int i = 0; i < GV.cnt; i++){
-//                writer.append(String.format("%1$.12f", GV.sogi.get(i, 0)[0]));
-//                for(int j = 1; j < GV.nCol; j++)
-//                    writer.append("," + String.format("%1$.12f", GV.sogi.get(i, j)[0]));
-//                writer.append('\n');
-//            }
-//            writer.flush();
-//            writer.close();
-
-            // save categories
-            File target = new File(fileDir, GV._categorySaveFile);
-            writer = new FileWriter(target);
-
-            writer.append(GV._trainTarget.get(0));
-            for(int i = 1; i < GV._trainTarget.size(); i++)
-                writer.append("," + GV._trainTarget.get(i));
-
-            writer.flush();
-            writer.close();
-
             // save category name list
             File targetFile = new File(fileDir, GV._categoryNamesSaveFile);
             writer = new FileWriter(targetFile);
 
-            writer.append(GV.targetNames[0]);
-            for(int i = 1; i < GV.targetNames.length; i++){
-                writer.append("," + GV.targetNames[i]);
+            writer.append(GV._uniqueCatNames[0]);
+            for (int i = 1; i < GV._uniqueCatNames.length; i++){
+                writer.append("," + GV._uniqueCatNames[i]);
             }
 
             writer.flush();
@@ -137,7 +113,7 @@ public class FileIO {
             }
 
             svm.save(GV._folderDir + GV._svmSaveFile);
-            writeSOGIToFile();
+            writeAuxiliaryToFile();
 
             System.out.print("Write SVM to File successfully!");
             return true;
@@ -149,8 +125,8 @@ public class FileIO {
         }
     }
 
-    public static boolean readSOGIUtils() {
-        if(GV.targetNames == null) {
+    public static boolean readAuxiliary() {
+        if(GV._uniqueCatNames == null) {
             try {
                 String csvFile;
                 String csvSplitBy = ",";
@@ -162,15 +138,15 @@ public class FileIO {
                 br = new BufferedReader(new FileReader(csvFile));
                 while ((line = br.readLine()) != null) {
                     String[] targetNames = line.split(csvSplitBy);
-                    GV.targetNames = targetNames.clone();
+                    GV._uniqueCatNames = targetNames.clone();
                 }
 
                 //=== pre-process target map
-                GV.mapTarget = new JSONObject();
-                GV.ivMapTarget = new JSONObject();
-                for (int i = 0; i < GV.targetNames.length; i++) {
-                    GV.mapTarget.put(GV.targetNames[i], i);
-                    GV.ivMapTarget.put(String.valueOf(i), GV.targetNames[i]);
+                GV.mapCat = new JSONObject();
+                GV.ivMapCat = new JSONObject();
+                for (int i = 0; i < GV._uniqueCatNames.length; i++) {
+                    GV.mapCat.put(GV._uniqueCatNames[i], i);
+                    GV.ivMapCat.put(String.valueOf(i), GV._uniqueCatNames[i]);
                 }
                 return true;
             } catch (Exception e) {
@@ -185,7 +161,7 @@ public class FileIO {
         if (GV.svm == null && (new File(GV._folderDir + GV._svmSaveFile).exists())) {
             GV.svm = new CvSVM();
             GV.svm.load(GV._folderDir + GV._svmSaveFile);
-            readSOGIUtils();
+            readAuxiliary();
         }
     }
 
