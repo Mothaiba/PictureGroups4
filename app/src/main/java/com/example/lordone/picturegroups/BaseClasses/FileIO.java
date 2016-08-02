@@ -9,6 +9,7 @@ import android.os.Environment;
 
 import org.json.JSONObject;
 import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
 import org.opencv.ml.CvSVM;
 
 import java.io.BufferedReader;
@@ -274,6 +275,11 @@ public class FileIO {
         catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static boolean writeMatToImage(Mat mat, String _fileName) {
+        String _filePath = GV._folderDir + File.separator + _fileName;
+        return Highgui.imwrite(_filePath, mat);
     }
 
 }

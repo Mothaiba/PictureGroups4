@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.os.AsyncTask;
 
 import com.example.lordone.picturegroups.AuxiliaryClasses.AlertDia;
+import com.example.lordone.picturegroups.BaseClasses.FileIO;
 import com.example.lordone.picturegroups.BaseClasses.GV;
 import com.example.lordone.picturegroups.BaseClasses.ImageExecutive;
 
@@ -63,6 +64,7 @@ public class Train extends AsyncTask<Void, Integer, Integer> {
 
                 Mat raw_img = Highgui.imread(_file, 0);
 
+                GV.sogi_index = GV.spact_index = GV.mstd_index = 0;
                 Mat mat_img = new Mat();
                 for (int lvl = 0; lvl <= GV.spm_max; lvl++) {
                     Size size = new Size(raw_img.cols() / (1 << (GV.spm_max - lvl)), raw_img.rows() / (1 << (GV.spm_max - lvl)));

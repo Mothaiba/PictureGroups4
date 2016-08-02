@@ -71,6 +71,9 @@ public class GV {
     public static int train_size = 100; //TODO change latter
 
     public static int xres, yres;
+    public static int sogi_index;
+    public static int spact_index;
+    public static int mstd_index;
 
     public static ArrayList<String> _trainListDirs = null;
     public static ArrayList<String> _testListDirs = null;

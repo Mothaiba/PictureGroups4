@@ -104,8 +104,11 @@ public class ImageExecutive {
         int yres = mat_img.cols();
         int[][] img = new int[xres][yres];
         for (int i = 0; i < xres; i++)
-            for (int j = 0; j < yres; j++)
+            for (int j = 0; j < yres; j++) {
                 img[i][j] = (int) mat_img.get(i, j)[0];
+                if(img[i][j] != (int) (mat_img.get(i, j)[0] + GV.eps))
+                    System.out.print("Not ok");
+            }
         GV.xres = xres;
         GV.yres = yres;
         return img;
@@ -222,13 +225,14 @@ public class ImageExecutive {
                     }
                 }
 
-            int bin_index = patch_index * GV.n_bins_1_sogi;
             if (sum_all > 0)
                 for (int p = 1; p <= GV.nshapes; p++)
-                    for (int q = 1; q <= GV.nshapes; q++, bin_index++)
-                        GV.sogi[img_index][bin_index] = (double) local_hist[p][q] / sum_all;
+                    for (int q = 1; q <= GV.nshapes; q++, GV.sogi_index++)
+                        GV.sogi[img_index][GV.sogi_index] = (double) local_hist[p][q] / sum_all;
 
         }
+
+//        FileIO.writeArrayToFile(GV.sogi, 1, GV.n_patches * GV.n_bins_1_sogi, "his_sogi.csv");
     }
 
     public static void computeSpact(int img_index, int[][] img, int lvl) {
@@ -263,10 +267,9 @@ public class ImageExecutive {
                         sum_all--;
                 }
 
-            int bin_index = patch_index * GV.n_bins_1_spact;
             if (sum_all > 0)
-                for (int p = 1; p <= GV.n_bins_1_spact; p++, bin_index++)
-                    GV.spact[img_index][bin_index] = (double) local_hist[p] / sum_all;
+                for (int p = 1; p <= GV.n_bins_1_spact; p++, GV.spact_index++)
+                    GV.spact[img_index][GV.spact_index] = (double) local_hist[p] / sum_all;
         }
     }
 
@@ -302,8 +305,9 @@ public class ImageExecutive {
                 }
             tmp_std = Math.sqrt(tmp_std) / ((xmax - xmin + 1) * (ymax - ymin + 1));
 
-            GV.meanPixel[img_index][patch_index] = tmp_mean;
-            GV.stdPixel[img_index][patch_index] = tmp_std;
+            GV.meanPixel[img_index][GV.mstd_index] = tmp_mean;
+            GV.stdPixel[img_index][GV.mstd_index] = tmp_std;
+            ++GV.mstd_index;
         }
     }
 

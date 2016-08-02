@@ -84,7 +84,7 @@ public class StaticTestActivity extends AppCompatActivity {
                 for (String _file : _fileList) {
                     File file = new File(path + File.separator + _file);
                     if (!_file.startsWith(".") && file.isFile()) {
-                        GV._testListDirs.add(_file);
+                        GV._testListDirs.add(path + File.separator + _file);
                     }
                 }
             } else {
